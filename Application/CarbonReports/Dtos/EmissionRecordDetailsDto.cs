@@ -17,5 +17,6 @@ namespace Application.CarbonReports.Dtos
         // Infos aus der verknüpften Kategorie
         public string CategoryName { get; set; } = string.Empty;
         public EmissionScope CategoryScope { get; set; }
+        
     }
 }

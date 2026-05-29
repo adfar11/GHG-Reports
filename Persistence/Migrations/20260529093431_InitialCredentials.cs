@@ -75,9 +75,10 @@ namespace Persistence.Migrations
                 values: new object[,]
                 {
                     { new Guid("11111111-1111-1111-1111-111111111111"), 0.41999999999999998, "Stromnetz (Standard)", 2, "kWh" },
-                    { new Guid("11111111-2222-3333-4444-555555555555"), 0.35999999999999999, "Stromnetz (Standard)", 2, "kWh" },
+                    { new Guid("11111111-2222-3333-4444-555555555555"), 0.35999999999999999, "Stromnetz (Ökostrom)", 2, "kWh" },
                     { new Guid("22222222-1111-1111-1111-222222222222"), 2.6400000000000001, "Fuhrpark (Diesel)", 1, "Liters" },
-                    { new Guid("22222222-2222-2222-2222-222222222222"), 2.5, "Fuhrpark (Benzin)", 1, "Liters" }
+                    { new Guid("22222222-2222-2222-2222-222222222222"), 2.5, "Fuhrpark (Benzin)", 1, "Liters" },
+                    { new Guid("44444444-1111-1111-1111-444444444444"), 0.20000000000000001, "Heizung (Erdgas)", 1, "kWh" }
                 });
 
             migrationBuilder.InsertData(
@@ -99,9 +100,13 @@ namespace Persistence.Migrations
                     { new Guid("a1111111-0000-0000-0000-000000000003"), new DateTime(2026, 3, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "Strom Mär", new Guid("11111111-2222-3333-4444-555555555555"), 4500.0, null },
                     { new Guid("a1111111-0000-0000-0000-000000000004"), new DateTime(2026, 4, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "Strom Apr", new Guid("11111111-1111-1111-1111-111111111111"), 3100.0, null },
                     { new Guid("a2222222-0000-0000-0000-000000000001"), new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "Diesel Jan", new Guid("22222222-1111-1111-1111-222222222222"), 1100.0, null },
-                    { new Guid("a2222222-0000-0000-0000-000000000002"), new DateTime(2026, 2, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "Diesel Feb", new Guid("22222222-2222-2222-2222-222222222222"), 950.0, null },
+                    { new Guid("a2222222-0000-0000-0000-000000000002"), new DateTime(2026, 2, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "Diesel Feb", new Guid("22222222-1111-1111-1111-222222222222"), 950.0, null },
                     { new Guid("a2222222-0000-0000-0000-000000000003"), new DateTime(2026, 3, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "Diesel Mär", new Guid("22222222-1111-1111-1111-222222222222"), 1300.0, null },
-                    { new Guid("a2222222-0000-0000-0000-000000000004"), new DateTime(2026, 4, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "Diesel Apr", new Guid("22222222-2222-2222-2222-222222222222"), 1200.0, null }
+                    { new Guid("a2222222-0000-0000-0000-000000000004"), new DateTime(2026, 4, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "Diesel Apr", new Guid("22222222-1111-1111-1111-222222222222"), 1200.0, null },
+                    { new Guid("a4444444-0000-0000-0000-000000000001"), new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "Erdgas Jan", new Guid("44444444-1111-1111-1111-444444444444"), 8500.0, null },
+                    { new Guid("a4444444-0000-0000-0000-000000000002"), new DateTime(2026, 2, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "Erdgas Feb", new Guid("44444444-1111-1111-1111-444444444444"), 7800.0, null },
+                    { new Guid("a4444444-0000-0000-0000-000000000003"), new DateTime(2026, 3, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "Erdgas Mär", new Guid("44444444-1111-1111-1111-444444444444"), 6200.0, null },
+                    { new Guid("a4444444-0000-0000-0000-000000000004"), new DateTime(2026, 4, 15, 0, 0, 0, 0, DateTimeKind.Unspecified), "Erdgas Apr", new Guid("44444444-1111-1111-1111-444444444444"), 3100.0, null }
                 });
 
             migrationBuilder.CreateIndex(

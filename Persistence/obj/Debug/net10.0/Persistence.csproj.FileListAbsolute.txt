@@ -34,3 +34,4 @@ D:\cSharp\GHG-Reporting\Persistence\bin\Debug\net10.0\LatoFont\Lato-SemiBoldItal
 D:\cSharp\GHG-Reporting\Persistence\bin\Debug\net10.0\LatoFont\Lato-Thin.ttf
 D:\cSharp\GHG-Reporting\Persistence\bin\Debug\net10.0\LatoFont\Lato-ThinItalic.ttf
 D:\cSharp\GHG-Reporting\Persistence\bin\Debug\net10.0\LatoFont\OFL.txt
+D:\cSharp\GHG-Reporting\Persistence\obj\Debug\net10.0\Persistence.sourcelink.json

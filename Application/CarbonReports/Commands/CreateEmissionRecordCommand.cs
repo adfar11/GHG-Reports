@@ -40,6 +40,7 @@ namespace Application.CarbonReports.Commands
 
             var newRecord = new Domain.Entities.EmissionRecord
             {
+                Id = Guid.NewGuid(),
                 EmissionCategoryId = request.EmissionsCategoryId,
                 Quantity = request.Quantity,
                 ConsumptionDate = request.ConsumptionDate,

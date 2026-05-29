@@ -55,7 +55,7 @@ namespace Persistence.Migrations
                         {
                             Id = new Guid("11111111-2222-3333-4444-555555555555"),
                             CO2Factor = 0.35999999999999999,
-                            Name = "Stromnetz (Standard)",
+                            Name = "Stromnetz (Ökostrom)",
                             Scope = 2,
                             Unit = "kWh"
                         },
@@ -74,6 +74,14 @@ namespace Persistence.Migrations
                             Name = "Fuhrpark (Benzin)",
                             Scope = 1,
                             Unit = "Liters"
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-1111-1111-1111-444444444444"),
+                            CO2Factor = 0.20000000000000001,
+                            Name = "Heizung (Erdgas)",
+                            Scope = 1,
+                            Unit = "kWh"
                         });
                 });
 
@@ -127,6 +135,14 @@ namespace Persistence.Migrations
                         },
                         new
                         {
+                            Id = new Guid("a4444444-0000-0000-0000-000000000001"),
+                            ConsumptionDate = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Erdgas Jan",
+                            EmissionCategoryId = new Guid("44444444-1111-1111-1111-444444444444"),
+                            Quantity = 8500.0
+                        },
+                        new
+                        {
                             Id = new Guid("a1111111-0000-0000-0000-000000000002"),
                             ConsumptionDate = new DateTime(2026, 2, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Strom Feb",
@@ -138,8 +154,16 @@ namespace Persistence.Migrations
                             Id = new Guid("a2222222-0000-0000-0000-000000000002"),
                             ConsumptionDate = new DateTime(2026, 2, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Diesel Feb",
-                            EmissionCategoryId = new Guid("22222222-2222-2222-2222-222222222222"),
+                            EmissionCategoryId = new Guid("22222222-1111-1111-1111-222222222222"),
                             Quantity = 950.0
+                        },
+                        new
+                        {
+                            Id = new Guid("a4444444-0000-0000-0000-000000000002"),
+                            ConsumptionDate = new DateTime(2026, 2, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Erdgas Feb",
+                            EmissionCategoryId = new Guid("44444444-1111-1111-1111-444444444444"),
+                            Quantity = 7800.0
                         },
                         new
                         {
@@ -159,6 +183,14 @@ namespace Persistence.Migrations
                         },
                         new
                         {
+                            Id = new Guid("a4444444-0000-0000-0000-000000000003"),
+                            ConsumptionDate = new DateTime(2026, 3, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Erdgas Mär",
+                            EmissionCategoryId = new Guid("44444444-1111-1111-1111-444444444444"),
+                            Quantity = 6200.0
+                        },
+                        new
+                        {
                             Id = new Guid("a1111111-0000-0000-0000-000000000004"),
                             ConsumptionDate = new DateTime(2026, 4, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Strom Apr",
@@ -170,8 +202,16 @@ namespace Persistence.Migrations
                             Id = new Guid("a2222222-0000-0000-0000-000000000004"),
                             ConsumptionDate = new DateTime(2026, 4, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Diesel Apr",
-                            EmissionCategoryId = new Guid("22222222-2222-2222-2222-222222222222"),
+                            EmissionCategoryId = new Guid("22222222-1111-1111-1111-222222222222"),
                             Quantity = 1200.0
+                        },
+                        new
+                        {
+                            Id = new Guid("a4444444-0000-0000-0000-000000000004"),
+                            ConsumptionDate = new DateTime(2026, 4, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Erdgas Apr",
+                            EmissionCategoryId = new Guid("44444444-1111-1111-1111-444444444444"),
+                            Quantity = 3100.0
                         });
                 });
 
