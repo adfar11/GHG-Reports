@@ -1,29 +1,45 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Domain.Entities;
 
-namespace Domain.Entities
+public class EmissionRecord
 {
-    public class EmissionRecord
-    {
-        public Guid Id { get; set; }
-        public Guid EmissionCategoryId { get; set; }
-        public EmissionCategory Category { get; set; } = null!;
-        
-        public double Quantity { get; set; } // Der tatsächliche Verbrauchswert (z.B. 2500 kWh)
-        public DateTime ConsumptionDate { get; set; } // Wichtig für die 12-Monats-Zuordnung
-        
-        public string Description { get; set; } = string.Empty; // Optionale Notiz (z.B. "Stromrechnung Q1")
+    public Guid Id { get; set; }
+    public Guid EmissionCategoryId { get; set; }
+    public EmissionCategory Category { get; set; } = null!;
+    
+    public double Quantity { get; set; } 
+    public DateTime ConsumptionDate { get; set; } 
+    public string Description { get; set; } = string.Empty;
 
-        // Domain-Logik direkt in der Entity (Rich Domain Model)
-        public double CalculateCO2e()
+    // NEU: Snapshot des Ergebnisses für Audit-Sicherheit
+    public double CalculatedCO2e { get; private set; }
+
+    // NEU: Verknüpfung zum Standort
+    public Guid FacilityId { get; set; }
+    public Facility Facility { get; set; } = null!;
+
+    public Guid? VehicleId { get; set; }
+    public Vehicle? Vehicle { get; set; }
+
+    // Aktualisierte Domain-Logik
+    public void ExecuteCalculation()
+    {
+        if (Category?.HistoricalFactors == null) return;
+
+        // Finde den Faktor, der zum Jahr des Verbrauchs passt
+        var year = ConsumptionDate.Year;
+        var matchingFactor = Category.HistoricalFactors
+            .FirstOrDefault(f => f.Year == year);
+
+        if (matchingFactor == null)
         {
-            if (Category == null) return 0;
-            return Quantity * Category.CO2Factor;
+            // Fallback: Nutze den neuesten verfügbaren Faktor, falls das Jahr 2026 noch nicht existiert
+            matchingFactor = Category.HistoricalFactors.OrderByDescending(f => f.Year).FirstOrDefault();
         }
 
-        public Guid? VehicleId { get; set; }
-        public Vehicle? Vehicle { get; set; }
+        if (matchingFactor != null)
+        {
+            // Berechnung ausführen und im Record fixieren
+            CalculatedCO2e = Quantity * matchingFactor.Factor;
+        }
     }
 }

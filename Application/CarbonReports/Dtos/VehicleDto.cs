@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Domain.Entities;
+namespace Application.CarbonReports.Dtos;
 
-namespace Application.CarbonReports.Dtos
+public class VehicleDto
 {
-    public record VehicleDto(
-        Guid Id, string Name, string LicensePlate, VehicleType Type);
+    public Guid VehicleId { get; set; }
+    public string VehicleName { get; set; } = string.Empty;
+    public string LicensePlate { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
 }

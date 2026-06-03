@@ -1,18 +1,26 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+using Application.Behaviors;
+using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
-namespace Application
+public static class DependencyInjection
 {
-    public static class DependencyInjection
+    public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        public static IServiceCollection AddApplication(this IServiceCollection services)
-        {
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
-            return services;
-        }
+        var assembly = Assembly.GetExecutingAssembly();
+
+        // 1. Registriert MediatR (falls noch nicht geschehen)
+        services.AddMediatR(configuration => {
+            configuration.RegisterServicesFromAssembly(assembly);
+            
+            // 2. Das ValidationBehavior als offenes Generikum hinzufügen
+            configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
+        });
+
+        // 3. Registriert automatisch alle FluentValidation-Klassen (wie deinen CreateEmissionRecordCommandValidator)
+        services.AddValidatorsFromAssembly(assembly);
+
+        return services;
     }
 }

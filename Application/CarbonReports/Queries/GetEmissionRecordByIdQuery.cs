@@ -27,7 +27,7 @@ namespace Application.CarbonReports.Queries
                 Description = record.Description,
                 
                 // Hier rufen wir direkt deine Methode aus der Entity auf!
-                CalculatedCO2e = record.CalculateCO2e(), 
+                CalculatedCO2e = record.CalculatedCO2e, 
                 
                 // Sicheres Auslesen der Kategorie-Eigenschaften
                 CategoryName = record.Category?.Name ?? "Unbekannte Kategorie",

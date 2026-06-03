@@ -13,5 +13,6 @@ namespace Application.Interfaces
         DbSet<EmissionRecord> EmissionRecords { get; }
         DbSet<Vehicle> Vehicles { get; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+        DbSet<Facility> Facilities { get; }
     }
 }

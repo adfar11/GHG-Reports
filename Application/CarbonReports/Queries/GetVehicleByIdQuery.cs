@@ -17,15 +17,20 @@ namespace Application.CarbonReports.Queries
         public async Task<VehicleDto?> Handle(
             GetVehicleByIdQuery request, CancellationToken cancellationToken)
         {
-            return await context.Vehicles
-                          .AsNoTracking()
-                          .Where(v => v.VehicleId == request.Id)
-                          .Select(v => new VehicleDto(
-                              v.VehicleId,
-                              v.Name,
-                              v.LicensePlate,
-                              v.Type
-                          )).FirstOrDefaultAsync(cancellationToken);
+            var vehicle = await context.Vehicles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.VehicleId == request.Id, cancellationToken);
+
+        if (vehicle == null) return null;
+
+        // ✅ Nutzen Sie geschweifte Klammern und weisen Sie die Properties direkt zu
+        return new VehicleDto
+        {
+            VehicleId = vehicle.VehicleId,
+            VehicleName = vehicle.VehicleName,
+            LicensePlate = vehicle.LicensePlate,
+            Type = vehicle.Type.ToString(),
+        };
             
             
         }

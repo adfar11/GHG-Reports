@@ -18,6 +18,12 @@ builder.Services.AddValidatorsFromAssembly(typeof(CreateEmissionRecordCommandVal
 
 
 var apiControllers = builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // ✅ Erlaubt es dem Backend, Strings wie "BatteryElectric" automatisch in das Enum zu konvertieren
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 
 
@@ -27,6 +33,7 @@ foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
 }
 
 builder.Services.AddOpenApi();
+builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.Services.AddApplication();
 builder.Services.AddPersistence(
     connectionString: builder.Configuration.GetConnectionString("DefaultConnection")!);

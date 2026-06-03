@@ -1,21 +1,17 @@
+namespace Domain.Entities;
 
-
-namespace Domain.Entities
+public enum VehicleType
 {
-    public enum VehicleType
-    {
-        InternalCombustion, // Reiner Verbrenner (Benzin/Diesel)
-        BatteryElectric,    // Reines E-Auto
-        PlugInHybrid        // Hybrid (nutzt Strom und Kraftstoff)
-    }
-    public class Vehicle
-    {
-        public Guid VehicleId { get; set; }
-        public string Name { get; set; } = string.Empty; // z.B. "Firmenwagen Chef"
-        public string LicensePlate { get; set; } = string.Empty; // z.B. "B-MW-2026"
-        public VehicleType Type { get; set; }
+    InternalCombustion, // 0
+    BatteryElectric,    // 1
+    PlugInHybrid        // 2
+}
 
-        // Navigation Property: Ein Fahrzeug kann viele Verbrauchseinträge haben
-        public ICollection<EmissionRecord> Records { get; set; } = new List<EmissionRecord>();
-    }
+public class Vehicle
+{
+    public Guid VehicleId { get; set; }
+    public string VehicleName { get; set; } = string.Empty;
+    public string LicensePlate { get; set; } = string.Empty;
+    public VehicleType Type { get; set; }
+    public ICollection<EmissionRecord> EmissionRecords { get; set; } = new List<EmissionRecord>();
 }

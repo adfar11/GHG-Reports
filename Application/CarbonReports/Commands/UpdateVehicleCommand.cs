@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Application.CarbonReports.Commands
 {
     public record UpdateVehicleCommand(
-        Guid Id, string Name, string LicensePlate, VehicleType Type) : IRequest<bool>;
+        Guid Id, string VehicleName, string LicensePlate, VehicleType Type) : IRequest<bool>;
     public class UpdateVehicleCommandHandler(ICarbonDbContext context)
       : IRequestHandler<UpdateVehicleCommand, bool>
     {
@@ -21,7 +21,7 @@ namespace Application.CarbonReports.Commands
             
             if (vehicle == null) return false;
 
-            vehicle.Name = request.Name;
+            vehicle.VehicleName = request.VehicleName;
             vehicle.LicensePlate = request.LicensePlate;
             vehicle.Type = request.Type;
             await context.SaveChangesAsync(cancellationToken);

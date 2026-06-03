@@ -36,7 +36,7 @@ public class CarbonReportController(IMediator mediator, IPdfReportService pdfSer
     {
         if(request.Quantity < 0) return BadRequest("Quantity must be greater than 0.");
         var command = new CreateEmissionRecordCommand(
-            request.EmissionCategoryId,   request.Quantity, request.ConsumptionDate, request.Description, request.VehicleId);
+            request.EmissionCategoryId, request.FacilityId, request.Quantity, request.ConsumptionDate, request.Description, request.VehicleId);
         var result = await mediator.Send(command, cancellationToken);
         
         // Nutzt das korrekte Jahr aus dem Request für den Redirect-Link

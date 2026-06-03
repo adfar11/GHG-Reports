@@ -18,7 +18,7 @@ namespace Application.CarbonReports.Commands
             //EmissionCategoryId cannot empty
            // RuleFor(x => x.EmissionsCategoryId)
             //.NoEmpty()
-            RuleFor(x => x.EmissionsCategoryId)
+            RuleFor(x => x.EmissionCategoryId)
                 .NotEmpty() 
                 .WithMessage("EmissionCategoryId must have a valid EmissionCategoryId.");
 

@@ -10,6 +10,7 @@ namespace API.Middleware
     {
         public int StatusCode { get; set; }
         public string Message { get; set; } = string.Empty;
+        public object? Errors { get; set; } 
         public string? Detailed { get; set; } // Wird nur im Entwicklungsmodus befüllt
 
         public override string ToString() => JsonSerializer.Serialize(this);

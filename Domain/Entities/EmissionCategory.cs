@@ -17,6 +17,8 @@ namespace Domain.Entities
         public string Unit { get; set; } = string.Empty; // z.B. "kWh", "Liters", "km"
         
         // Navigation Property für EF Core
-        public ICollection<EmissionRecord> Records { get; set; } = new List<EmissionRecord>();
+        public ICollection<EmissionRecord> EmissionRecords { get; set; } = new List<EmissionRecord>();
+        public ICollection<EmissionFactor> HistoricalFactors { get; set; } = new List<EmissionFactor>();
+        
     }
 }

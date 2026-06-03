@@ -45,7 +45,7 @@ namespace Application.CarbonReports.Queries
             var report = new VehicleCarbonReportDto
             {
                 VehicleId = vehicle.VehicleId,
-                VehicleName = vehicle.Name,
+                VehicleName = vehicle.VehicleName,
                 Year = request.Year,
                 LicensePlate = vehicle.LicensePlate,
                 TotalCO2e = records.Sum(x => x.CO2e),
