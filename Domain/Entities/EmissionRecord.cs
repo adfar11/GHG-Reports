@@ -11,7 +11,7 @@ public class EmissionRecord
     public string Description { get; set; } = string.Empty;
 
     // NEU: Snapshot des Ergebnisses für Audit-Sicherheit
-    public double CalculatedCO2e { get; private set; }
+    public double CalculatedCO2e { get; set; }
 
     // NEU: Verknüpfung zum Standort
     public Guid FacilityId { get; set; }

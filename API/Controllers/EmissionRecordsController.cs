@@ -14,30 +14,41 @@ namespace API.Controllers
     [Route("api/[controller]")] // Ergibt die Route: api/EmissionRecords
     public class EmissionRecordsController(IMediator mediator) : ControllerBase
     {
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Create([FromBody] CreateEmissionRecordDto dto, CancellationToken cancellationToken)
-        {
-            if (dto.Quantity <= 0)
-            {
-                return BadRequest("Quantity must be greater than 0.");
-            }
+ [HttpPost]
+[ProducesResponseType(StatusCodes.Status201Created)]
+[ProducesResponseType(StatusCodes.Status400BadRequest)]
+[ProducesResponseType(StatusCodes.Status404NotFound)]
+public async Task<IActionResult> Create([FromBody] CreateEmissionRecordDto dto, CancellationToken cancellationToken)
+{
+    if (dto.Quantity <= 0)
+    {
+        return BadRequest(new { Message = "Quantity must be greater than 0." });
+    }
 
-            // Wichtig: Reihenfolge der Parameter an deinen Command-Konstruktor anpassen!
-            var command = new CreateEmissionRecordCommand(
-                dto.FacilityId,            // 1. Parameter: FacilityId
-                dto.EmissionCategoryId,    // 2. Parameter: EmissionsCategoryId
-                dto.Quantity,              // 3. Parameter: Quantity
-                dto.ConsumptionDate,       // 4. Parameter: ConsumptionDate
-                dto.Description,           // 5. Parameter: Description
-                dto.VehicleId   
-            );
+    try
+    {
+        // KORRIGIERT: Reihenfolge exakt an den Record-Konstruktor angepasst!
+        var command = new CreateEmissionRecordCommand(
+            dto.EmissionCategoryId,    // 1. Parameter: EmissionCategoryId (Kategorie)
+            dto.FacilityId,            // 2. Parameter: FacilityId (Standort)
+            dto.Quantity,              // 3. Parameter: Quantity
+            dto.ConsumptionDate,       // 4. Parameter: ConsumptionDate
+            dto.Description,           // 5. Parameter: Description
+            dto.VehicleId              // 6. Parameter: VehicleId
+        );
 
-            var newRecordId = await mediator.Send(command, cancellationToken);
+        var newRecordId = await mediator.Send(command, cancellationToken);
 
-            return CreatedAtAction(nameof(GetById), new { id = newRecordId }, new { Id = newRecordId });
-        }
+        // KORRIGIERT: Explizite Angabe der ID für die REST-konforme Location-Response
+        return CreatedAtAction("GetById", new { id = newRecordId }, new { Id = newRecordId });
+    }
+    catch (KeyNotFoundException ex)
+    {
+        // Verhindert den Fehler 500, falls eine ID im System fehlt
+        return NotFound(new { Message = ex.Message });
+    }
+}
+
 
         [HttpGet("{id:guid}")]
         [ProducesResponseType(StatusCodes.Status200OK)]

@@ -11,10 +11,22 @@ import type {
 
 export const emissionService = {
   create: async (dto: CreateEmissionRecordDto): Promise<string> => {
-    const response = await apiClient.post<{ id: string }>(
-      "/EmissionRecords",
-      dto,
-    );
+    const cleanVehicleId =
+      dto.vehicleId && dto.vehicleId.trim() !== "" ? dto.vehicleId : null;
+
+    // 👈 KORREKTUR: Wenn die Beschreibung leer ist, senden wir ein "-" statt null/leer,
+    // damit die strikte Backend-Validierung zufrieden ist.
+    const cleanDescription =
+      dto.description && dto.description.trim() !== "" ? dto.description : "-";
+
+    const response = await apiClient.post<{ id: string }>("/EmissionRecords", {
+      EmissionCategoryId: dto.emissionCategoryId,
+      FacilityId: dto.facilityId,
+      Quantity: Number(dto.quantity),
+      ConsumptionDate: dto.consumptionDate,
+      Description: cleanDescription, // Sendet jetzt garantiert Text
+      VehicleId: cleanVehicleId,
+    });
     return response.data.id;
   },
 
