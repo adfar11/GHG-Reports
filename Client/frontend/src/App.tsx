@@ -3,6 +3,7 @@ import { MainLayout } from "./layouts/MainLayout";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { VehiclesPage } from "./pages/VehiclesPage";
 import { FacilitiesPage } from "./pages/FacilitiesPage";
+import { CategoriesPage } from "./pages/CategoriesPage";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           {/* Weitere Pfade für die Navigation */}
           <Route path="facilities" element={<FacilitiesPage />} />
           <Route path="vehicles" element={<VehiclesPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

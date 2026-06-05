@@ -35,6 +35,8 @@ export interface EmissionCategoryLookupDto {
   id: string;
   name: string;
   unit: string;
+  scope: number; // 1 = Scope 1, 2 = Scope 2, 3 = Scope 3
+  co2Factor: number; // CO2-Faktor direkt from backend
 }
 
 export interface VehicleLookupDto {

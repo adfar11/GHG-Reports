@@ -11,7 +11,7 @@ export const MainLayout: React.FC = () => {
             CO₂ Tracker
           </h2>
           <p className="text-xs text-emerald-400 font-medium mt-1">
-            Clean Architecture v1.0
+            Clean Architecture & React Router 6 Demo
           </p>
         </div>
 
@@ -56,6 +56,20 @@ export const MainLayout: React.FC = () => {
             }
           >
             🚗 Fuhrpark (Vehicles)
+          </NavLink>
+
+          {/* 🔥 NEU - Navigation Link 4: Emissionskategorien */}
+          <NavLink
+            to="/categories"
+            className={({ isActive }) =>
+              `w-full flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                isActive
+                  ? "bg-blue-600 text-white"
+                  : "hover:bg-slate-800 hover:text-white"
+              }`
+            }
+          >
+            🏷️ Emissionskategorien
           </NavLink>
         </nav>
 

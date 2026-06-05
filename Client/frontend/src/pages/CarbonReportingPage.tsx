@@ -16,18 +16,6 @@ export const CarbonReportingPage: React.FC = () => {
   );
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
 
-  // Modal-Sichtbarkeiten
-  const [isFacilityModalOpen, setIsFacilityModalOpen] =
-    useState<boolean>(false);
-  const [isVehicleModalOpen, setIsVehicleModalOpen] = useState<boolean>(false);
-
-  // Formular-States für Modals
-  const [facilityName, setFacilityName] = useState("");
-  const [facilityCountry, setFacilityCountry] = useState("");
-  const [vehicleName, setVehicleName] = useState("");
-  const [vehiclePlate, setVehiclePlate] = useState("");
-  const [vehicleType, setVehicleType] = useState("PKW");
-
   const years = [2026, 2025, 2024, 2023];
   const months = [
     { value: 1, name: "Januar" },
@@ -59,43 +47,6 @@ export const CarbonReportingPage: React.FC = () => {
     }
   };
 
-  const handleSubmitFacility = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!facilityName || !facilityCountry) return;
-    try {
-      await emissionService.createFacility({
-        facilityName,
-        country: facilityCountry,
-      });
-      setIsFacilityModalOpen(false);
-      setFacilityName("");
-      setFacilityCountry("");
-      setRefreshTrigger((prev) => prev + 1);
-    } catch (error) {
-      console.error("Fehler beim Erstellen des Standorts:", error);
-    }
-  };
-
-  const handleSubmitVehicle = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!vehicleName || !vehiclePlate) return;
-    try {
-      await emissionService.createVehicle({
-        vehicleName: vehicleName,
-        licensePlate: vehiclePlate,
-        type: vehicleType,
-        // model: vehicleType,
-      });
-      setIsVehicleModalOpen(false);
-      setVehicleName("");
-      setVehiclePlate("");
-      setRefreshTrigger((prev) => prev + 1);
-    } catch (error) {
-      console.error("Fehler beim Erstellen des Fahrzeugs:", error);
-    }
-  };
-
-  // Zentraler Daten-Fetch für KPI und Tabelle (bleibt gleich)
   useEffect(() => {
     const loadRecords = async () => {
       try {
@@ -108,27 +59,22 @@ export const CarbonReportingPage: React.FC = () => {
     loadRecords();
   }, [refreshTrigger]);
 
-  const handleRecordCreated = () => {
+  const handleRefreshData = () => {
     setRefreshTrigger((prev) => prev + 1);
   };
 
-  // 🔥 NEU: Dynamische Filterung direkt zur Laufzeit im Frontend
   const filteredRecords = records.filter((record) => {
     const recordDate = new Date(record.consumptionDate);
     const matchYear = recordDate.getFullYear() === selectedYear;
-
-    // Wenn kein Monat gewählt ist (Ganzes Jahr), zählt nur das Jahr.
-    // Ansonsten muss auch der Monat übereinstimmen (Achtung: JS Monate sind 0-basiert, daher + 1)
     const matchMonth =
       selectedMonth === undefined ||
       recordDate.getMonth() + 1 === selectedMonth;
-
     return matchYear && matchMonth;
   });
 
   return (
     <div className="space-y-8 relative">
-      {/* HEADER-BEREICH (mit den funktionsfähigen Dropdowns) */}
+      {/* HEADER-BEREICH */}
       <div className="border-b border-slate-200 pb-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
@@ -139,7 +85,7 @@ export const CarbonReportingPage: React.FC = () => {
           </p>
         </div>
 
-        {/* RECHTE SEITE: FILTER UND PDF EXPORT */}
+        {/* FILTER UND PDF EXPORT */}
         <div className="flex flex-wrap items-center gap-3 lg:self-end">
           <select
             value={selectedYear}
@@ -173,34 +119,31 @@ export const CarbonReportingPage: React.FC = () => {
           <button
             onClick={handleDownloadPdf}
             disabled={isDownloading}
-            className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg shadow-sm transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg shadow-sm transition-colors disabled:bg-blue-400"
           >
             {isDownloading ? "Generiert..." : "📄 PDF exportieren"}
           </button>
         </div>
       </div>
 
-      {/* SCHNELL-AKTIONEN FÜR STAMMDATEN */}
-      {/* ... (Ihr bestehender Stammdaten-Bereich für Modals bleibt hier unverändert) ... */}
-
-      {/* ✅ KORRIGIERT: Übergabe des GEFILTERTEN Arrays für die KPI-Berechnung */}
+      {/* KPI KARTEN */}
       <EmissionKpiCards records={filteredRecords} />
 
+      {/* REINE ZWEI-SPALTEN-STRUKTUR */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {/* LINKE SPALTE: Nur das Erfassungsformular */}
         <div className="lg:col-span-1">
           <EmissionRecordForm
-            onRecordCreated={handleRecordCreated}
+            onRecordCreated={handleRefreshData}
             key={refreshTrigger}
           />
         </div>
 
-        {/* ✅ KORRIGIERT: Übergabe des GEFILTERTEN Arrays für die Tabellenanzeige */}
+        {/* RECHTE SEITE: Die Verlaufstabelle */}
         <div className="lg:col-span-2">
           <EmissionRecordTable records={filteredRecords} />
         </div>
       </div>
-
-      {/* ... (Die beiden Modals für Facility und Vehicle bleiben hier unten unverändert) ... */}
     </div>
   );
 };

@@ -51,6 +51,24 @@ export const emissionService = {
     return response.data;
   },
 
+  createCategory: async (category: {
+    name: string;
+    unit: string;
+    co2Factor: number;
+    scope: number;
+  }): Promise<string> => {
+    const response = await apiClient.post<{ id: string }>(
+      "/EmissionCategories",
+      {
+        Name: category.name,
+        Unit: category.unit,
+        CO2Factor: Number(category.co2Factor),
+        Scope: Number(category.scope),
+      },
+    );
+    return response.data.id;
+  },
+
   // Erweitere das bestehende emissionService-Objekt um diesen Eintrag:
 
   createFacility: async (facility: {
