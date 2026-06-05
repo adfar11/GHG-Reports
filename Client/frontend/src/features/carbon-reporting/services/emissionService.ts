@@ -69,6 +69,30 @@ export const emissionService = {
     return response.data.id;
   },
 
+  deleteRecord: async (id: string): Promise<void> => {
+    await apiClient.delete(`/EmissionRecords/${id}`);
+  },
+
+  updateRecord: async (
+    id: string,
+    dto: CreateEmissionRecordDto,
+  ): Promise<void> => {
+    // Wir nutzen dasselbe PascalCase-Mapping wie beim Erstellen
+    const cleanVehicleId =
+      dto.vehicleId && dto.vehicleId.trim() !== "" ? dto.vehicleId : null;
+    const cleanDescription =
+      dto.description && dto.description.trim() !== "" ? dto.description : "-";
+
+    await apiClient.put(`/EmissionRecords/${id}`, {
+      EmissionCategoryId: dto.emissionCategoryId,
+      FacilityId: dto.facilityId,
+      Quantity: Number(dto.quantity),
+      ConsumptionDate: dto.consumptionDate,
+      Description: cleanDescription,
+      VehicleId: cleanVehicleId,
+    });
+  },
+
   // Erweitere das bestehende emissionService-Objekt um diesen Eintrag:
 
   createFacility: async (facility: {

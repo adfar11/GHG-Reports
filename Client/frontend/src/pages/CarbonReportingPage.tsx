@@ -141,7 +141,10 @@ export const CarbonReportingPage: React.FC = () => {
 
         {/* RECHTE SEITE: Die Verlaufstabelle */}
         <div className="lg:col-span-2">
-          <EmissionRecordTable records={filteredRecords} />
+          <EmissionRecordTable
+            records={filteredRecords}
+            onRefreshRequired={handleRefreshData}
+          />
         </div>
       </div>
     </div>
