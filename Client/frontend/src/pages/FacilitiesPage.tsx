@@ -32,7 +32,7 @@ export const FacilitiesPage: React.FC = () => {
         const data = await emissionService.getFacilities();
         setFacilities(data);
       } catch (err) {
-        setGlobalError(`Fehler  ${err} beim Laden der Standorte vom Server.`);
+        setGlobalError(`Fehler ${err} beim Laden der Standorte vom Server.`);
       } finally {
         setIsLoading(false);
       }
@@ -46,11 +46,28 @@ export const FacilitiesPage: React.FC = () => {
   };
 
   // 2. Formular absenden (POST)
+  // 2. Formular absenden (POST)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFieldErrors({});
     setGlobalError(null);
     setSuccessMessage(null);
+
+    // FRONTEND-VALIDIERUNG: Namen auf Duplikate prüfen
+    const nameAlreadyExists = facilities.some(
+      (f) =>
+        f.facilityName.trim().toLowerCase() ===
+        formData.facilityName.trim().toLowerCase(),
+    );
+
+    if (nameAlreadyExists) {
+      setFieldErrors({
+        FacilityName: [
+          `Ein Standort mit dem Namen "${formData.facilityName}" existiert bereits.`,
+        ],
+      });
+      return; // Bricht das Absenden ab
+    }
 
     try {
       await emissionService.createFacility(formData);
@@ -65,8 +82,33 @@ export const FacilitiesPage: React.FC = () => {
         if (error.response.status === 400 && apiError.errors) {
           setFieldErrors(apiError.errors);
         } else {
+          // Fängt die Fehlermeldung aus dem Backend ab, falls die Client-Prüfung umgangen wurde
           setGlobalError(apiError.message || "Ein Fehler ist aufgetreten.");
         }
+      }
+    }
+  };
+
+  // 3. Standort löschen (DELETE)
+  const handleDelete = async (id: string, name: string) => {
+    if (
+      !window.confirm(`Möchten Sie den Standort "${name}" wirklich löschen?`)
+    ) {
+      return;
+    }
+
+    setGlobalError(null);
+    setSuccessMessage(null);
+
+    try {
+      await emissionService.deleteFacility(id);
+      setSuccessMessage(`Standort "${name}" wurde erfolgreich gelöscht.`);
+      setRefreshTrigger((prev) => prev + 1); // Tabelle live aktualisieren
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        setGlobalError(err.response.data.message);
+      } else {
+        setGlobalError(`Fehler beim Löschen des Standorts: ${err}`);
       }
     }
   };
@@ -96,6 +138,12 @@ export const FacilitiesPage: React.FC = () => {
         </div>
       )}
 
+      {successMessage && (
+        <div className="p-3 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg">
+          {successMessage}
+        </div>
+      )}
+
       {/* Grid-Layout: Formular links, Tabelle rechts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* FORMULAR: Neuer Standort */}
@@ -103,12 +151,6 @@ export const FacilitiesPage: React.FC = () => {
           <h2 className="text-lg font-semibold text-slate-900 mb-4">
             Standort hinzufügen
           </h2>
-
-          {successMessage && (
-            <div className="p-3 mb-4 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg">
-              {successMessage}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -151,7 +193,7 @@ export const FacilitiesPage: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg transition-colors shadow-xs"
+              className="w-full px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg transition-colors shadow-xs cursor-pointer"
             >
               Standort speichern
             </button>
@@ -177,6 +219,7 @@ export const FacilitiesPage: React.FC = () => {
                   <th className="px-4 py-3">Standort-ID</th>
                   <th className="px-4 py-3">Name</th>
                   <th className="px-4 py-3">Land (Strommix)</th>
+                  <th className="px-4 py-3 text-right">Aktionen</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
@@ -195,6 +238,38 @@ export const FacilitiesPage: React.FC = () => {
                       <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 border border-blue-100">
                         📍 {f.country}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() =>
+                          handleDelete(f.facilityId, f.facilityName)
+                        }
+                        disabled={!f.isDeletable}
+                        className={`p-1 rounded-md transition-colors ${
+                          f.isDeletable
+                            ? "text-slate-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                            : "text-slate-200 cursor-not-allowed"
+                        }`}
+                        title={
+                          f.isDeletable
+                            ? "Standort löschen"
+                            : "Löschen nicht möglich, da diesem Standort noch Emissionsdaten zugeordnet sind."
+                        }
+                      >
+                        <svg
+                          className="w-5 h-5 inline"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
                     </td>
                   </tr>
                 ))}

@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
+using System.Runtime.InteropServices;
 using Application.CarbonReports.Commands;
 using Application.CarbonReports.Queries;
 using MediatR;
@@ -30,6 +28,28 @@ namespace API.Controllers
         {
             var newFacilityId = await mediator.Send(command, cancellationToken);
             return CreatedAtAction(nameof(GetAll), new { id = newFacilityId }, new { Id = newFacilityId });
+        }
+
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> DeleteFacility(Guid id)
+        {
+
+            try
+            {
+                
+            var command = new DeleteFacilityCommand(id);
+            var result = await mediator.Send(command);
+
+            if (!result)
+            {
+                return NotFound(new { message = $"Facility with id {id} not found." });
+            }
+
+            return NoContent(); // 204 No Content ist Standard für erfolgreiche Löschungen
+            } catch(BadHttpRequestException ex) {
+                return BadRequest(new { message = ex.Message });
+            }
+
         }
 
     }

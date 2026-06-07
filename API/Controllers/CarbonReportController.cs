@@ -3,7 +3,6 @@ using Application.CarbonReports.Dtos;
 using Application.CarbonReports.Queries;
 using Application.Interfaces;
 using Application.Services;
-using CarbonReport.Application.CarbonReports.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,7 +20,7 @@ public class CarbonReportController(IMediator mediator, IPdfReportService pdfSer
     {
         if(year < 2000 || year > 2100 ) return BadRequest("Year must be between 2000 and 2100.");
         if(month.HasValue && (month < 1 || month > 12)) return BadRequest("Month must be between 1 and 12.");
-        var query = new GetAnnualReport( year, month);
+        var query = new GetAnnualReport( year, month, null); // 🌟 NEU: Standort-Name hier auf null setzen, da es in diesem Endpunkt keinen Filter gibt
         var result = await mediator.Send(query, cancellationToken);
         
         return Ok(result);
@@ -82,29 +81,40 @@ public class CarbonReportController(IMediator mediator, IPdfReportService pdfSer
         if (result == null) return NotFound($"Vehicle with id {vehicleId} not found.");
         return Ok(result);
     }
+    
+    
     [HttpGet("{year:int}/pdf")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileStreamResult))] // Typisiert als Datei
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileStreamResult))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetAnnualReportPdf(int year, [FromQuery] int? month, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAnnualReportPdf(
+        int year, 
+        [FromQuery] int? month, 
+        [FromQuery] string? facilityName, // 🌟 NEU: Optionaler Standort-Name aus dem Query-String
+        CancellationToken cancellationToken)
     {
-        // Gleiche Validierung wie oben
+        // Validierung
         if (year < 2000 || year > 2100) return BadRequest("Year must be between 2000 and 2100.");
         if (month.HasValue && (month < 1 || month > 12)) return BadRequest("Month must be between 1 and 12.");
         
-        // 1. Dieselbe MediatR-Query nutzen, um die Daten zu holen
-        var query = new GetAnnualReport(year, month);
+        // 1. 🌟 MediatR-Query mit dem neuen Parameter füttern
+        var query = new GetAnnualReport(year, month, facilityName);
         var result = await mediator.Send(query, cancellationToken);
         
         // 2. PDF über den injizierten Service generieren
         byte[] pdfBytes = pdfService.GeneratePdfReport(result, month);
         
-        // 3. Dateinamen definieren
+        // 3. 🌟 Dateinamen dynamisch anpassen (fügt den Standortnamen hinzu, falls gefiltert)
+        string safeFacilityName = !string.IsNullOrWhiteSpace(facilityName) 
+            ? $"_{facilityName.Replace(" ", "-")}" 
+            : "";
+
         string dateiname = month.HasValue 
-            ? $"Emission Report_{year}_{month.Value:D2}.pdf" 
-            : $"Yearly Emission Report_{year}.pdf";
+            ? $"Emission Report_{year}_{month.Value:D2}{safeFacilityName}.pdf" 
+            : $"Yearly Emission Report_{year}{safeFacilityName}.pdf";
             
         // 4. Als PDF-Datei zurückgeben
         return File(pdfBytes, "application/pdf", dateiname);
     }
+
 
 }

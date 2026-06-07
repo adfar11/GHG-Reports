@@ -29,6 +29,7 @@ export interface FacilityLookupDto {
   facilityId: string;
   facilityName: string;
   country: string;
+  isDeletable: boolean;
 }
 
 export interface EmissionCategoryLookupDto {
@@ -44,6 +45,7 @@ export interface VehicleLookupDto {
   vehicleName: string;
   licensePlate: string;
   type: string;
+  isDeletable: boolean;
 }
 
 export interface CreateVehicleDto {

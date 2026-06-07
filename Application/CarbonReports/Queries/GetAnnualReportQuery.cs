@@ -1,13 +1,14 @@
+using Application.CarbonReports.Dtos;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
-using Application.CarbonReports.Dtos;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace CarbonReport.Application.CarbonReports.Queries;
-
-// 1. Die Query
-public record GetAnnualReport(int Year, int? Month = null) : IRequest<CarbonReportDto>;
+// 1. Die Query (Unverändert, perfekt als Record gelöst)
+public record GetAnnualReport(int Year, int? Month, string? FacilityName) : IRequest<CarbonReportDto>;
 
 // 2. Der Handler
 public class GetAnnualReportHandler(ICarbonDbContext context) 
@@ -26,14 +27,21 @@ public class GetAnnualReportHandler(ICarbonDbContext context)
             query = query.Where(r => r.ConsumptionDate.Month == request.Month.Value);
         }
 
+        // Filter nach dem ausgewählten Standort-Namen
+        if (!string.IsNullOrWhiteSpace(request.FacilityName))
+        {
+            query = query.Where(e => e.Facility.FacilityName == request.FacilityName);
+        }
+
+        // HIER MIT TEIL 2 WEITERMACHEN (Transformation)
         // 3. Transformiere die Daten und lade sie in den Arbeitsspeicher
-        // WICHTIG: Kategorie-Name wird hier mitgenommen, um das Dictionary zu füttern
+        // 🌟 KORREKTUR: Nutzt jetzt direkt das audit-sichere Feld 'CalculatedCO2e' aus der DB!
         var records = await query
             .Select(r => new 
             {
                 r.ConsumptionDate.Month,
                 KategorieName = r.Category.Name,
-                CO2e = (double)(r.Quantity * r.Category.CO2Factor) // Zu double casten, da DTO double nutzt
+                CO2e = r.CalculatedCO2e // Kein fehleranfälliges Nachrechnen im Select nötig
             })
             .ToListAsync(cancellationToken);
 

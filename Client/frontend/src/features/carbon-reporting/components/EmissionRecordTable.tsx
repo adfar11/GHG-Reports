@@ -47,7 +47,7 @@ export const EmissionRecordTable: React.FC<EmissionRecordTableProps> = ({
               <th className="py-3 px-5">Kategorie</th>
               <th className="py-3 px-5 text-right">Menge</th>
               <th className="py-3 px-5 text-right">CO₂e</th>
-              <th className="py-3 px-5 text-center">Aktionen</th> {/* 🔥 NEU */}
+              <th className="py-3 px-5 text-center">Aktionen</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -86,7 +86,7 @@ export const EmissionRecordTable: React.FC<EmissionRecordTableProps> = ({
                       ? `${(r.calculatedCO2e / 1000).toFixed(2)} t`
                       : `${r.calculatedCO2e.toFixed(1)} kg`}
                   </td>
-                  {/* 🔥 NEU: Lösch-Button */}
+
                   <td className="py-3.5 px-5 text-center">
                     <button
                       onClick={() => handleDelete(r.id)}

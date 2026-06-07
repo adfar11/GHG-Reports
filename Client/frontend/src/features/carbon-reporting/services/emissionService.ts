@@ -14,8 +14,6 @@ export const emissionService = {
     const cleanVehicleId =
       dto.vehicleId && dto.vehicleId.trim() !== "" ? dto.vehicleId : null;
 
-    // 👈 KORREKTUR: Wenn die Beschreibung leer ist, senden wir ein "-" statt null/leer,
-    // damit die strikte Backend-Validierung zufrieden ist.
     const cleanDescription =
       dto.description && dto.description.trim() !== "" ? dto.description : "-";
 
@@ -24,13 +22,12 @@ export const emissionService = {
       FacilityId: dto.facilityId,
       Quantity: Number(dto.quantity),
       ConsumptionDate: dto.consumptionDate,
-      Description: cleanDescription, // Sendet jetzt garantiert Text
+      Description: cleanDescription,
       VehicleId: cleanVehicleId,
     });
     return response.data.id;
   },
 
-  // GET: api/EmissionCategories (Liefert alle Kategorien für das Dropdown)
   getCategories: async (): Promise<EmissionCategoryLookupDto[]> => {
     const response = await apiClient.get<EmissionCategoryLookupDto[]>(
       "/EmissionCategories",
@@ -38,13 +35,11 @@ export const emissionService = {
     return response.data;
   },
 
-  // GET: api/Facilities (Falls du den Controller hast, liefert alle Standorte)
   getFacilities: async (): Promise<FacilityLookupDto[]> => {
     const response = await apiClient.get<FacilityLookupDto[]>("/Facilities");
     return response.data;
   },
 
-  // KORRIGIERT: Semikolon am Ende durch ein Komma (oder gar nichts beim letzten Element) ersetzt
   getRecords: async (): Promise<EmissionRecordListItemDto[]> => {
     const response =
       await apiClient.get<EmissionRecordListItemDto[]>("/EmissionRecords");
@@ -73,11 +68,19 @@ export const emissionService = {
     await apiClient.delete(`/EmissionRecords/${id}`);
   },
 
+  async deleteFacility(facilityId: string): Promise<void> {
+    // Ersetzen Sie den URL-Pfad passend zu Ihrer Backend-API (z.B. /api/facilities/...)
+    await apiClient.delete(`/facilities/${facilityId}`);
+  },
+
+  /*  async deleteFacility(facilityId: string): Promise<void> {
+  await apiClient.delete(`/api/facilities/${facilityId}`);
+} */
+
   updateRecord: async (
     id: string,
     dto: CreateEmissionRecordDto,
   ): Promise<void> => {
-    // Wir nutzen dasselbe PascalCase-Mapping wie beim Erstellen
     const cleanVehicleId =
       dto.vehicleId && dto.vehicleId.trim() !== "" ? dto.vehicleId : null;
     const cleanDescription =
@@ -92,34 +95,24 @@ export const emissionService = {
       VehicleId: cleanVehicleId,
     });
   },
-
-  // Erweitere das bestehende emissionService-Objekt um diesen Eintrag:
-
   createFacility: async (facility: {
     facilityName: string;
     country: string;
   }): Promise<string> => {
-    // Wir mappen die Keys auf PascalCase um, passend zum C# Record
     const response = await apiClient.post<{ id: string }>("/Facilities", {
-      FacilityName: facility.facilityName, // 👈 Großgeschrieben (PascalCase)
-      Country: facility.country, // 👈 Großgeschrieben (PascalCase)
+      FacilityName: facility.facilityName,
+      Country: facility.country,
     });
     return response.data.id;
   },
 
-  // Erweitere das bestehende emissionService-Objekt um diese zwei Methoden:
-
-  // GET: api/Vehicles (Lädt alle Fahrzeuge)
-  // GET: api/Vehicles
   getVehicles: async (): Promise<VehicleLookupDto[]> => {
     const response = await apiClient.get<VehicleLookupDto[]>("/Vehicles");
     return response.data;
   },
 
-  // POST: api/Vehicles
   createVehicle: async (vehicle: CreateVehicleDto): Promise<string> => {
     const response = await apiClient.post<{ id: string }>("/Vehicles", {
-      // Explizites Mapping auf die C#-PascalCase-Eigenschaften des Commands
       VehicleName: vehicle.vehicleName,
       LicensePlate: vehicle.licensePlate,
       Type: vehicle.type,
@@ -127,41 +120,73 @@ export const emissionService = {
     return response.data.id;
   },
 
-  // Fügen Sie diese Methode in Ihre 'emissionService.ts' oder einen passenden 'reportService.ts' ein:
-  // Fügen Sie diese Methode in Ihr Service-Objekt ein:
-
-  downloadAnnualReportPdf: async (
+  /**
+   * Lädt den CO₂-Jahresbericht als PDF vom Backend herunter.
+   * KORRIGIERT: Nutzt jetzt 'apiClient.get' und ist am Ende vollzählig geschlossen.
+   */
+  /**
+   * Lädt den CO₂-Bericht vom festen Jahres-Pfad herunter.
+   * KORRIGIERT: Baut die URL exakt als /carbonreport/{year}/pdf auf.
+   */
+  async downloadAnnualReportPdf(
     year: number,
     month?: number,
-  ): Promise<void> => {
-    // Query-Parameter für den Monat nur anhängen, wenn er existiert
-    const queryParams = month ? `?month=${month}` : "";
-    const url = `/carbonreport/${year}/pdf${queryParams}`;
+    facilityName?: string,
+  ): Promise<void> {
+    try {
+      // 1. Wir packen Monat und Standort in die Query-Parameter
+      const queryParams = new URLSearchParams();
 
-    const response = await apiClient.get(url, {
-      responseType: "blob", // Verhindert, dass die Binärdaten korrumpiert werden
-    });
+      if (month !== undefined && month !== null) {
+        queryParams.append("month", month.toString());
+      }
 
-    // Erstellt einen Download-Link im Browser-Speicher
-    const blob = new Blob([response.data], { type: "application/pdf" });
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
+      if (facilityName && facilityName.trim() !== "") {
+        queryParams.append("facilityName", facilityName.trim());
+      }
 
-    link.href = downloadUrl;
+      // 2. 🌟 KORREKTUR: Das '/pdf' muss direkt hinter das Jahr, vor das Fragezeichen!
+      // Ergibt exakt: /carbonreport/2026/pdf?month=6&facilityName=Werk-Hamburg
+      const hasParams = queryParams.toString() !== "";
+      const url = `/carbonreport/${year}/pdf${hasParams ? "?" + queryParams.toString() : ""}`;
 
-    // Dynamischer Dateiname passend zum Backend
-    const dateiname = month
-      ? `Emission_Report_${year}_${String(month).padStart(2, "0")}.pdf`
-      : `Yearly_Emission_Report_${year}.pdf`;
+      // 3. HTTP-Anfrage über euren registrierten apiClient absenden
+      const response = await apiClient.get(url, {
+        responseType: "blob", // Zwingend erforderlich, damit der Dateistrom intakt bleibt
+      });
 
-    link.setAttribute("download", dateiname);
-    document.body.appendChild(link);
-    link.click();
+      const blob = response.data;
 
-    // Speicherbereinigung
-    link.remove();
-    window.URL.revokeObjectURL(downloadUrl);
+      if (blob.type === "application/json") {
+        const errorText = await blob.text();
+        console.error("Das Backend hat einen Fehler gemeldet:", errorText);
+        alert(
+          "Der Server konnte das PDF für diesen Standort nicht generieren.",
+        );
+        return;
+      }
+
+      // 4. Download im Browser auslösen
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+
+      const monthSuffix = month ? `_Monat-${month}` : "";
+      const facilitySuffix = facilityName
+        ? `_${facilityName.replace(/[^a-zA-Z0-9]/g, "-")}`
+        : "";
+      link.setAttribute(
+        "download",
+        `CO2_Bericht_${year}${monthSuffix}${facilitySuffix}.pdf`,
+      );
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error: any) {
+      console.error("Fehler beim PDF-Download im Service:", error);
+      throw error;
+    }
   },
 };
-
-// Erweitere das bestehende emissionService-Objekt um diese Methode:
