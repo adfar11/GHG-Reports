@@ -20,7 +20,7 @@ public class CarbonReportController(IMediator mediator, IPdfReportService pdfSer
     {
         if(year < 2000 || year > 2100 ) return BadRequest("Year must be between 2000 and 2100.");
         if(month.HasValue && (month < 1 || month > 12)) return BadRequest("Month must be between 1 and 12.");
-        var query = new GetAnnualReport( year, month, null); // 🌟 NEU: Standort-Name hier auf null setzen, da es in diesem Endpunkt keinen Filter gibt
+        var query = new GetAnnualReport( year, month, null, null); // 🌟 NEU: Standort-Name hier auf null setzen, da es in diesem Endpunkt keinen Filter gibt
         var result = await mediator.Send(query, cancellationToken);
         
         return Ok(result);
@@ -89,7 +89,8 @@ public class CarbonReportController(IMediator mediator, IPdfReportService pdfSer
     public async Task<IActionResult> GetAnnualReportPdf(
         int year, 
         [FromQuery] int? month, 
-        [FromQuery] string? facilityName, // 🌟 NEU: Optionaler Standort-Name aus dem Query-String
+        [FromQuery] string? facilityName, 
+        [FromQuery] string? CompanyName,
         CancellationToken cancellationToken)
     {
         // Validierung
@@ -97,7 +98,7 @@ public class CarbonReportController(IMediator mediator, IPdfReportService pdfSer
         if (month.HasValue && (month < 1 || month > 12)) return BadRequest("Month must be between 1 and 12.");
         
         // 1. 🌟 MediatR-Query mit dem neuen Parameter füttern
-        var query = new GetAnnualReport(year, month, facilityName);
+        var query = new GetAnnualReport(year, month, facilityName, CompanyName);
         var result = await mediator.Send(query, cancellationToken);
         
         // 2. PDF über den injizierten Service generieren

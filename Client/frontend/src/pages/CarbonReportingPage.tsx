@@ -21,7 +21,11 @@ export const CarbonReportingPage: React.FC = () => {
   );
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
 
-  const years = [2026, 2025, 2024, 2023];
+  // Zustand für den vom Nutzer eingegebenen Firmennamen
+  const [companyNameInput, setCompanyNameInput] =
+    useState<string>("Company A GmbH");
+
+  const years = [2026, 2025, 2024, 2023]; // 🌟 HIER KORRIGIERT: Das Gleichheitszeichen und Array repariert
   const months = [
     { value: 1, name: "Januar" },
     { value: 2, name: "Februar" },
@@ -37,19 +41,19 @@ export const CarbonReportingPage: React.FC = () => {
     { value: 12, name: "Dezember" },
   ];
 
-  // 🌟 HIER ERWEITERT: Gibt den gewählten Standort an den API-Service weiter
   const handleDownloadPdf = async () => {
     try {
       setIsDownloading(true);
 
-      // Wenn "Alle Standorte" gewählt ist, senden wir undefined, ansonsten den Namen
       const facilityParam =
         selectedFacilityName === "" ? undefined : selectedFacilityName;
+      const finalCompanyName = companyNameInput.trim() || "Standard Firma GmbH";
 
       await emissionService.downloadAnnualReportPdf(
         selectedYear,
         selectedMonth,
-        facilityParam, // 👈 Neu als 3. Parameter
+        facilityParam,
+        finalCompanyName,
       );
     } catch (error) {
       console.error("PDF-Download fehlgeschlagen:", error);
@@ -87,7 +91,6 @@ export const CarbonReportingPage: React.FC = () => {
     const matchMonth =
       selectedMonth === undefined ||
       recordDate.getMonth() + 1 === selectedMonth;
-
     const matchFacility =
       selectedFacilityName === "" ||
       record.facilityName === selectedFacilityName;
@@ -95,7 +98,6 @@ export const CarbonReportingPage: React.FC = () => {
     return matchYear && matchMonth && matchFacility;
   });
 
-  // HIER MIT TEIL 2 WEITERMACHEN
   return (
     <div className="space-y-8 relative text-slate-600">
       {/* HEADER-BEREICH */}
@@ -111,6 +113,15 @@ export const CarbonReportingPage: React.FC = () => {
 
         {/* FILTER UND PDF EXPORT */}
         <div className="flex flex-wrap items-center gap-3 lg:self-end">
+          {/* Eingabefeld für den Firmennamen */}
+          <input
+            type="text"
+            value={companyNameInput}
+            onChange={(e) => setCompanyNameInput(e.target.value)}
+            placeholder="Firmenname eingeben..."
+            className="rounded-md border-slate-300 py-1.5 px-3 text-sm focus:border-blue-500 focus:ring-blue-500 bg-white shadow-sm font-medium text-slate-700 max-w-[200px]"
+          />
+
           {/* Standort Dropdown */}
           <select
             value={selectedFacilityName}
@@ -169,20 +180,15 @@ export const CarbonReportingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* KPI KARTEN */}
       <EmissionKpiCards records={filteredRecords} />
 
-      {/* REINE ZWEI-SPALTEN-STRUKTUR */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* LINKE SPALTE */}
         <div className="lg:col-span-1">
           <EmissionRecordForm
             onRecordCreated={handleRefreshData}
             key={refreshTrigger}
           />
         </div>
-
-        {/* RECHTE SEITE */}
         <div className="lg:col-span-2">
           <EmissionRecordTable
             records={filteredRecords}

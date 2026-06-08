@@ -35,6 +35,10 @@ export const emissionService = {
     return response.data;
   },
 
+  async deleteCategory(id: string): Promise<void> {
+    await apiClient.delete(`/EmissionCategories/${id}`);
+  },
+
   getFacilities: async (): Promise<FacilityLookupDto[]> => {
     const response = await apiClient.get<FacilityLookupDto[]>("/Facilities");
     return response.data;
@@ -120,21 +124,18 @@ export const emissionService = {
     return response.data.id;
   },
 
-  /**
-   * Lädt den CO₂-Jahresbericht als PDF vom Backend herunter.
-   * KORRIGIERT: Nutzt jetzt 'apiClient.get' und ist am Ende vollzählig geschlossen.
-   */
-  /**
-   * Lädt den CO₂-Bericht vom festen Jahres-Pfad herunter.
-   * KORRIGIERT: Baut die URL exakt als /carbonreport/{year}/pdf auf.
-   */
+  async deleteVehicle(vehicleId: string): Promise<void> {
+    // Erzeugt den Request an: DELETE /api/vehicles/GU-ID-HIER
+    await apiClient.delete(`/vehicles/${vehicleId}`);
+  },
   async downloadAnnualReportPdf(
     year: number,
     month?: number,
     facilityName?: string,
+    companyName?: string, // 🌟 NEU: 4. Parameter für die dynamische Firma
   ): Promise<void> {
     try {
-      // 1. Wir packen Monat und Standort in die Query-Parameter
+      // 1. Wir packen alle Filter und Metadaten in die Query-Parameter
       const queryParams = new URLSearchParams();
 
       if (month !== undefined && month !== null) {
@@ -145,8 +146,12 @@ export const emissionService = {
         queryParams.append("facilityName", facilityName.trim());
       }
 
-      // 2. 🌟 KORREKTUR: Das '/pdf' muss direkt hinter das Jahr, vor das Fragezeichen!
-      // Ergibt exakt: /carbonreport/2026/pdf?month=6&facilityName=Werk-Hamburg
+      // 🌟 NEU: Firmenname an die Query-Parameter anhängen, falls übermittelt
+      if (companyName && companyName.trim() !== "") {
+        queryParams.append("companyName", companyName.trim());
+      }
+
+      // 2. Route zusammenbauen (Das '/pdf' sitzt direkt hinter dem Jahr, vor dem Fragezeichen)
       const hasParams = queryParams.toString() !== "";
       const url = `/carbonreport/${year}/pdf${hasParams ? "?" + queryParams.toString() : ""}`;
 
@@ -175,6 +180,8 @@ export const emissionService = {
       const facilitySuffix = facilityName
         ? `_${facilityName.replace(/[^a-zA-Z0-9]/g, "-")}`
         : "";
+
+      // Dateiname lokal für den Browser definieren
       link.setAttribute(
         "download",
         `CO2_Bericht_${year}${monthSuffix}${facilitySuffix}.pdf`,

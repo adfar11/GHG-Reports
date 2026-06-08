@@ -7,10 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-// 1. Die Query (Unverändert, perfekt als Record gelöst)
-public record GetAnnualReport(int Year, int? Month, string? FacilityName) : IRequest<CarbonReportDto>;
+public record GetAnnualReport(int Year, int? Month, string? FacilityName, string? CompanyName) : IRequest<CarbonReportDto>;
 
-// 2. Der Handler
 public class GetAnnualReportHandler(ICarbonDbContext context) 
     : IRequestHandler<GetAnnualReport, CarbonReportDto>
 {
@@ -33,33 +31,41 @@ public class GetAnnualReportHandler(ICarbonDbContext context)
             query = query.Where(e => e.Facility.FacilityName == request.FacilityName);
         }
 
-        // HIER MIT TEIL 2 WEITERMACHEN (Transformation)
         // 3. Transformiere die Daten und lade sie in den Arbeitsspeicher
-        // 🌟 KORREKTUR: Nutzt jetzt direkt das audit-sichere Feld 'CalculatedCO2e' aus der DB!
+        // 🌟 KORREKTUR: Wir entfernen die fehlerhafte Relation 'r.Facility.Company'
         var records = await query
             .Select(r => new 
             {
                 r.ConsumptionDate.Month,
                 KategorieName = r.Category.Name,
-                CO2e = r.CalculatedCO2e // Kein fehleranfälliges Nachrechnen im Select nötig
+                CO2e = r.CalculatedCO2e
             })
             .ToListAsync(cancellationToken);
+
+        // 🌟 NEU: Da 'Company' auf der Facility fehlt, holen wir uns hier einen Fallback-Namen,
+        // oder Sie können ihn direkt fest für Ihr System/Mandanten hinterlegen (z.B. aus der Benutzer-Session)
+        string firmenName = "Ihre Firma GmbH"; 
 
         // 4. Baue das CarbonReportDto im Arbeitsspeicher zusammen
         var report = new CarbonReportDto
         {
             Year = request.Year,
             TotalCO2e = records.Sum(x => x.CO2e),
+            
+            // 🌟 BEFÜLLUNG FÜR DAS PDF:
+            //CompanyName = firmenName,
+            CompanyName = !string.IsNullOrWhiteSpace(request.CompanyName) 
+            ? request.CompanyName : "Standard Firma GmbH",
+            FacilityName = !string.IsNullOrWhiteSpace(request.FacilityName) ? request.FacilityName : "All Facilities",
+
             MonthlyEmissions = records
                 .GroupBy(x => x.Month)
                 .Select(monthGroup => new MonthlyEmissionDto
                 {
                     MonthNumber = monthGroup.Key,
-                    // Fügt den echten deutschen Monatsnamen hinzu (z.B. "Januar")
                     MonthName = CultureInfo.GetCultureInfo("de-DE").DateTimeFormat.GetMonthName(monthGroup.Key),
                     MonthlyTotalCO2e = monthGroup.Sum(x => x.CO2e),
                     
-                    // Befüllt dein Dictionary für die Balkendiagramme & die PDF-Spalten
                     Categories = monthGroup
                         .GroupBy(x => x.KategorieName)
                         .ToDictionary(

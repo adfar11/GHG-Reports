@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { emissionService } from "../features/carbon-reporting/services/emissionService";
 import { type VehicleLookupDto } from "../features/carbon-reporting/types/emission.types";
+import { VehicleRow } from "../components/VehicleRow";
 
 export const VehiclesPage: React.FC = () => {
   const [vehicles, setVehicles] = useState<VehicleLookupDto[]>([]);
@@ -8,12 +9,11 @@ export const VehiclesPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  // Formular-Zustände
   const [nameInput, setNameInput] = useState<string>("");
   const [plateInput, setPlateInput] = useState<string>("");
   const [typeInput, setTypeInput] = useState<string>("InternalCombustion");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
-  // 1. Daten laden
   useEffect(() => {
     const loadVehicles = async () => {
       try {
@@ -29,10 +29,21 @@ export const VehiclesPage: React.FC = () => {
     loadVehicles();
   }, [refreshTrigger]);
 
-  // 2. Formular absenden
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
     if (!nameInput || !plateInput) return;
+
+    const cleanInputPlate = plateInput.replace(/\s+/g, "").toLowerCase();
+    const isDuplicate = vehicles.some(
+      (v) =>
+        v.licensePlate.replace(/\s+/g, "").toLowerCase() === cleanInputPlate,
+    );
+
+    if (isDuplicate) {
+      setErrorMessage("Ein Fahrzeug mit diesem Kennzeichen existiert bereits.");
+      return;
+    }
 
     try {
       await emissionService.createVehicle({
@@ -40,37 +51,34 @@ export const VehiclesPage: React.FC = () => {
         licensePlate: plateInput,
         type: typeInput,
       });
-
-      // Reset & Schließen
       setIsModalOpen(false);
       setNameInput("");
       setPlateInput("");
       setTypeInput("InternalCombustion");
-
-      // Liste aktualisieren
       setRefreshTrigger((prev) => prev + 1);
     } catch (error) {
       console.error("Fehler beim Erstellen des Fahrzeugs:", error);
-      alert("Das Fahrzeug konnte nicht angelegt werden.");
+      setErrorMessage("Das Fahrzeug konnte nicht angelegt werden.");
     }
   };
 
-  const getReadableType = (type: string) => {
-    switch (type) {
-      case "InternalCombustion":
-        return "Reiner Verbrenner";
-      case "BatteryElectric":
-        return "Reines E-Auto";
-      case "PlugInHybrid":
-        return "Plug-In Hybrid";
-      default:
-        return type;
+  const handleDelete = async (vehicleId: string, vehicleName: string) => {
+    const confirmed = window.confirm(
+      `Möchten Sie das Fahrzeug "${vehicleName}" wirklich löschen?`,
+    );
+    if (!confirmed) return;
+
+    try {
+      await emissionService.deleteVehicle(vehicleId);
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (error) {
+      console.error("Fehler beim Löschen des Fahrzeugs:", error);
+      alert("Das Fahrzeug konnte nicht gelöscht werden.");
     }
   };
 
   return (
     <div className="space-y-6 p-6">
-      {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
@@ -81,14 +89,16 @@ export const VehiclesPage: React.FC = () => {
           </p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setErrorMessage("");
+            setIsModalOpen(true);
+          }}
           className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg shadow-sm transition"
         >
           🚗 + Fahrzeug hinzufügen
         </button>
       </div>
 
-      {/* TABELLE */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="text-center py-12 text-slate-500 text-sm">
@@ -105,41 +115,22 @@ export const VehiclesPage: React.FC = () => {
                 <th className="px-6 py-3">Bezeichnung</th>
                 <th className="px-6 py-3">Kennzeichen</th>
                 <th className="px-6 py-3">Antriebstyp</th>
+                <th className="px-6 py-3 text-right">Aktionen</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 bg-white">
               {vehicles.map((v) => (
-                <tr
+                <VehicleRow
                   key={v.vehicleId}
-                  className="hover:bg-slate-50 transition-colors"
-                >
-                  <td className="px-6 py-4 font-medium text-slate-900">
-                    {v.vehicleName}
-                  </td>
-                  <td className="px-6 py-4 font-mono text-xs text-slate-500">
-                    {v.licensePlate}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        v.type === "BatteryElectric"
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          : v.type === "PlugInHybrid"
-                            ? "bg-blue-50 text-blue-700 border border-blue-200"
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
-                      }`}
-                    >
-                      {getReadableType(v.type)}
-                    </span>
-                  </td>
-                </tr>
+                  vehicle={v}
+                  onDelete={handleDelete}
+                />
               ))}
             </tbody>
           </table>
         )}
       </div>
 
-      {/* MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-md p-6 mx-4">
@@ -147,6 +138,12 @@ export const VehiclesPage: React.FC = () => {
               Neues Fahrzeug registrieren
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {errorMessage && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-xs font-medium flex items-start gap-2">
+                  <span>⚠️</span>
+                  <span>{errorMessage}</span>
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Fahrzeugbezeichnung

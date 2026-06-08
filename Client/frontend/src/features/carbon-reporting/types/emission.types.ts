@@ -46,6 +46,7 @@ export interface VehicleLookupDto {
   licensePlate: string;
   type: string;
   isDeletable: boolean;
+  isUsed: boolean;
 }
 
 export interface CreateVehicleDto {

@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Application.CarbonReports.Commands;
 using Application.CarbonReports.Dtos;
 using Application.CarbonReports.Queries; // Namespace Ihrer Query prüfen
 using Application.Interfaces;
@@ -24,6 +25,10 @@ namespace API.Controllers
             var result = await mediator.Send(query, cancellationToken);
             return Ok(result);
         }
+
+
+
+
 
         [HttpPost]
             //[ProducesResponseType(StatusCodes.Status21Created)]
@@ -50,6 +55,22 @@ namespace API.Controllers
                 // return CreatedAtAction(nameof(GetAll), new { id = newCategory.Id }, newCategory);
                 return Ok(newCategory);
             }
+
+
+            [HttpDelete("{id:guid}")]
+            public async Task<IActionResult> DeleteCategory(Guid id, CancellationToken cancellationToken)
+            {
+                var command = new DeleteCategoryCommand(id);
+                var success = await mediator.Send(command, cancellationToken);
+
+                if (!success)
+                {
+                    return BadRequest(new { message = "Kategorie konnte nicht gelöscht werden. Sie ist entweder nicht vorhanden oder wird noch verwendet." });
+                }
+
+                return NoContent();
+            }
+
 
 
     }

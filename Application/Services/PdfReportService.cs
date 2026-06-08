@@ -32,9 +32,18 @@ namespace Application.Services
             // 3. Dynamischen Titel festlegen
             string titel = filteredMonth.HasValue 
                 ? $"CO₂-Emission report – {report.MonthlyEmissions.FirstOrDefault()?.MonthName} {report.Year}" 
-                : $"CO₂-Yearly report – Overview {report.Year}";
+                : $"CO₂–Overview of the year {report.Year}";
 
-            // 4. PDF Dokument erzeugen
+            // 4. ABSOLUTE FALLBACKS: Wenn die Werte NULL sind, zeigen wir Test-Meldungen an
+            string firma = !string.IsNullOrWhiteSpace(report.CompanyName) 
+                ? report.CompanyName 
+                : "[KEIN FIRMENNAME ÜBERMITTELT]";
+
+            string standort = !string.IsNullOrWhiteSpace(report.FacilityName) 
+                ? report.FacilityName 
+                : "[KEINE FACILITY ÜBERMITTELT]";
+
+            // 5. PDF Dokument erzeugen
             return Document.Create(container =>
             {
                 container.Page(page =>
@@ -44,15 +53,50 @@ namespace Application.Services
                     page.Margin(1.5f, Unit.Centimetre);
                     page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Arial"));
 
-                    // --- HEADER ---
+                    // --- HEADER (Komplett stabilisiert über separaten Table-Grid-Header) ---
                     page.Header().Column(col =>
                     {
-                        col.Item().Text(titel).SemiBold().FontSize(20).FontColor(Colors.Green.Darken3);
-                        col.Item().PaddingVertical(5).LineHorizontal(1).LineColor(Colors.Grey.Lighten1);
+                        col.Item().Table(headerTable =>
+                        {
+                            headerTable.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn(1); // Links für Titel & Firma
+                                columns.RelativeColumn(1); // Rechts für Facility & Datum
+                            });
+
+                            // Linke Spalte
+                            headerTable.Cell().Column(leftCol =>
+                            {
+                                leftCol.Item().Text(titel)
+                                    .SemiBold()
+                                    .FontSize(18)
+                                    .FontColor(Colors.Green.Darken3);
+                                
+                                leftCol.Item().PaddingTop(4).Text($"Company: {firma}")
+                                    .Bold()
+                                    .FontSize(11)
+                                    .FontColor(Colors.Grey.Darken4);
+                            });
+
+                            // Rechte Spalte
+                            headerTable.Cell().Column(rightCol =>
+                            {
+                                rightCol.Item().AlignRight().Text($"Facility: {standort}")
+                                    .Bold()
+                                    .FontSize(11)
+                                    .FontColor(Colors.Grey.Darken4);
+
+                                rightCol.Item().AlignRight().PaddingTop(4).Text($"Export Date: {DateTime.UtcNow:dd.MM.yyyy}")
+                                    .FontSize(9)
+                                    .FontColor(Colors.Grey.Darken1);
+                            });
+                        });
+
+                        col.Item().PaddingVertical(8).LineHorizontal(1).LineColor(Colors.Grey.Lighten1);
                     });
 
                     // --- INHALT (TABELLE) ---
-                    page.Content().PaddingVertical(1, Unit.Centimetre).Table(table =>
+                    page.Content().PaddingVertical(0.5f, Unit.Centimetre).Table(table =>
                     {
                         // Spalten-Definition: 1x Monat, X-mal Kategorien, 1x Gesamt
                         table.ColumnsDefinition(columns =>
